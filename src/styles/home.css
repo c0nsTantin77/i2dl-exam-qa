@@ -19,8 +19,8 @@
 .hp-t{font-weight:700;font-size:.98rem;color:#fff}
 .hp-d{font-size:.84rem;opacity:.8;line-height:1.3}
 .hero-cta{margin-top:22px;display:flex;align-items:center;gap:30px;flex-wrap:wrap}
-.hero-cta-text{font-size:1.18rem;font-weight:400;line-height:1.45;letter-spacing:-.014em;
-  color:rgba(255,255,255,.74);margin:0;max-width:30ch}
+.hero-cta-text{font-size:1.04rem;font-weight:400;line-height:1.4;letter-spacing:-.014em;
+  color:rgba(255,255,255,.74);margin:0;max-width:44ch}
 .hero-cta-text b{font-weight:600;color:#fff}
 .hero-cta-pills{display:flex;flex-wrap:wrap;gap:10px}
 .hero-cta-pills .share-pill{margin:0}

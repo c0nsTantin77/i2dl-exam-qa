@@ -10,10 +10,11 @@
 .wrong-btn:hover,.note-btn:hover{border-color:var(--tum);color:var(--tum)}
 .wrong-btn.on{background:#fff5f5;border-color:#ffc9c9;color:var(--no)}
 .srs-due{font-size:.8rem;font-weight:600;color:var(--muted);background:#eef2f7;border:1px solid transparent;
-  border-radius:8px;padding:5px 11px;cursor:default;font-family:inherit;line-height:1.25}
+  border-radius:8px;padding:5px 11px;cursor:default;font-family:inherit;line-height:1.25;
+  transition:box-shadow .12s,background .12s,border-color .12s}
 .srs-due:empty{display:none}
 .srs-due.over{color:#fff;background:var(--no);border-color:var(--no);cursor:pointer}
-.srs-due.over:hover{background:#c92a2a}
+.srs-due.over:hover{background:#c92a2a;border-color:#fff;box-shadow:0 0 0 3px rgba(255,107,107,.4)}
 
 /* chapter-page sidebar progress bar */
 .ch-progress{margin:2px 0 14px}
@@ -33,7 +34,8 @@
 .note-count{font-variant-numeric:tabular-nums}
 .note-count.near{color:var(--no);font-weight:700}
 .note-preview{margin-top:8px;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--tum);
-  border-radius:8px;background:#fff;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere}
+  border-radius:8px;background:#fff;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere;overflow-x:auto}
+.note-preview .katex-display{overflow-x:auto;overflow-y:hidden;padding-bottom:2px}
 .note-preview:empty{display:none}
 .note-preview>:first-child{margin-top:0}
 .note-preview>:last-child{margin-bottom:0}
@@ -123,6 +125,10 @@ details.q.has-note .note-btn{background:#fffaf0;border-color:#ffe2a8;color:#b886
 .ghit-row .ghit-main{flex:1;min-width:0;display:block;color:inherit;padding:11px 14px}
 .ghit-row .ghit-main:hover{text-decoration:none;background:#f7faff}
 .ghit-row .io-btn{flex:none}
+/* reviewed marker on tag / exam browse lists */
+.tp-list .ghit.is-reviewed{border-color:#8ce99a;background:#f8fff9}
+.ghit-rev{font-weight:700;color:var(--ok);white-space:nowrap;margin-left:7px}
+.ghit-rev::before{content:"✓ "}
 
 /* review page — explainer + grouped collapsible sections + per-chapter rings */
 /* quick-jump pills under the Review title */
@@ -152,8 +158,9 @@ details.q.has-note .note-btn{background:#fffaf0;border-color:#ffe2a8;color:#b886
 .rv-group-head::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .2s}
 .rv-group[open] .rv-group-head::after{transform:rotate(180deg)}
 .rv-group[open] .rv-group-head{border-bottom:1px solid var(--line)}
-.rv-group-title{font-weight:700;font-size:.96rem}
-.rv-group-n{font-size:.74rem;font-weight:700;color:var(--muted);background:#eef2f7;border-radius:999px;padding:2px 9px}
+.rv-group-title{font-weight:700;font-size:.96rem;flex:1;min-width:0}
+.rv-group-n{font-size:.74rem;font-weight:700;color:var(--muted);background:#eef2f7;border-radius:999px;
+  padding:2px 9px;flex:none;white-space:nowrap}
 .rv-ring{width:40px;height:40px;flex:none}
 .rv-ring circle{transform:rotate(-90deg);transform-origin:50% 50%}
 .rv-ring-bg{fill:none;stroke:#eef2f7;stroke-width:4}
@@ -236,5 +243,12 @@ details.q.has-note .note-btn{background:#fffaf0;border-color:#ffe2a8;color:#b886
 .fc-note-btn:hover{border-color:var(--tum);color:var(--tum)}
 .fc-note-btn.has{background:#fffaf0;border-color:#ffe2a8;color:#b8860b}
 .fc-note-wrap{margin-top:10px}
-@media(max-width:560px){.fc-rate{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){
+  .fc-rate{grid-template-columns:repeat(2,1fr)}
+  .rv-group-head{gap:9px;padding:10px 12px}
+  .rv-group-title{font-size:.9rem}
+  .rv-group-n{font-size:.72rem;padding:2px 8px}
+  .rv-jump-pill{font-size:.8rem;padding:6px 12px}
+  .fc-body{padding:16px 15px 20px}
+}
 

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import type { SearchEntry } from "../../lib/types";
 import { loadIndex, questionHref, TYPE_LABEL } from "../../lib/client/index-data";
 import { highlightHtml } from "../../lib/client/highlight";
 import { url } from "../../lib/paths";
 import { slug, buildContents, type ContentsGroup } from "../../lib/client/contents";
+import { Store, onChange } from "../../lib/client/store";
 
 const index = ref<SearchEntry[]>([]);
 const loaded = ref(false);
@@ -12,10 +13,19 @@ const current = ref<string | null>(null);
 const filter = ref("");
 const fWords = computed(() => filter.value.trim().toLowerCase().split(/\s+/).filter(Boolean));
 
+// reviewed marker on each listed question (reads the shared study store)
+const version = ref(0);
+let unsub = () => {};
+function isReviewed(a: string): boolean {
+  void version.value;
+  return Store.isReviewed(a);
+}
+
 onMounted(async () => {
   index.value = await loadIndex();
   current.value = new URLSearchParams(location.search).get("t");
   loaded.value = true;
+  unsub = onChange(() => version.value++); // reflect reviewed state after sync/import
   await nextTick();
   if (activeTag.value) {
     document.title = activeTag.value + " · Concept tags · I2DL";
@@ -24,6 +34,7 @@ onMounted(async () => {
     document.title = "Concept tags · I2DL Exam Q&A";
   }
 });
+onUnmounted(() => unsub());
 
 const counts = computed(() => {
   const c: Record<string, number> = {};
@@ -118,10 +129,11 @@ const tagHref = (t: string) => `${tagsUrl}?t=${encodeURIComponent(t)}`;
     <template v-for="g in byChapter" :key="g.id">
       <h2 class="tp-ch" :id="g.id">{{ g.title }}</h2>
       <div class="tp-list">
-        <a v-for="e in g.entries" :key="e.a" class="ghit" :href="questionHref(e)">
+        <a v-for="e in g.entries" :key="e.a" class="ghit"
+          :class="{ 'is-reviewed': isReviewed(e.a) }" :href="questionHref(e)">
           <span class="ghit-tag">{{ TYPE_LABEL[e.t] || e.t }}</span>
           <span class="ghit-q" v-html="highlightHtml(e.q, fWords)"></span>
-          <span class="ghit-meta">{{ e.kp }} · {{ e.src }}</span>
+          <span class="ghit-meta">{{ e.kp }} · {{ e.src }}<span v-if="isReviewed(e.a)" class="ghit-rev">reviewed</span></span>
         </a>
       </div>
     </template>
