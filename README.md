@@ -42,6 +42,9 @@ Popular Architectures (65) · RNNs & Transformers (56) · Appendix: Matrix Calcu
 - **2026-06-06** — Sign in with Google to sync progress (reviewed / wrong book / notes) across devices.
 - **2026-06-06** — Study tools: mark Reviewed, wrong book, per-question notes, spaced-repetition review, progress dashboard.
 - **2026-06-06** — Browse by exam paper (`SS23 6.1` jumps to a question), concept-tag pages, AI multiple-choice.
+- **2026-06-04** — One night, I couldn't sleep, so I decided to build something useful for myself and all TUM students. That was the beginning of an amazing story!😊
+
+## Milestone
 
 ## Develop
 Built with **[Astro](https://astro.build) + Vue islands**. Content stays in `data/*.json`
