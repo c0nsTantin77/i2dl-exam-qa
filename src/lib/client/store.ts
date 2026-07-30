@@ -53,7 +53,18 @@ export interface Progress {
   activity: Record<string, number>;
 }
 
+interface BackupEnvelope {
+  format: "i2dl-progress-backup";
+  version: 1;
+  exportedAt: string;
+  progress: Progress;
+}
+
 const SECTIONS: (keyof Progress)[] = ["reviewed", "wrong", "notes", "srs", "activity"];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 function load(): Progress {
   let p: Partial<Progress> = {};
@@ -184,12 +195,39 @@ export const Store = {
 
   wrongIds: (): string[] => Object.keys(P.wrong),
   reviewedIds: (): string[] => Object.keys(P.reviewed),
-  exportBlob: (): string => JSON.stringify(P, null, 2),
+  exportBlob: (): string => {
+    const backup: BackupEnvelope = {
+      format: "i2dl-progress-backup",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      progress: P,
+    };
+    return JSON.stringify(backup, null, 2);
+  },
 
   importBlob(json: string): void {
-    const obj = JSON.parse(json) as Partial<Progress>;
+    const parsed: unknown = JSON.parse(json);
+    if (!isRecord(parsed)) throw new Error("Backup must be a JSON object.");
+
+    // Backups created before the retention feature stored Progress directly.
+    // Continue accepting those files so existing users never lose portability.
+    const candidate =
+      parsed.format === "i2dl-progress-backup" ? parsed.progress : parsed;
+    if (!isRecord(candidate)) throw new Error("Backup progress is missing.");
+    if (parsed.format === "i2dl-progress-backup" && parsed.version !== 1) {
+      throw new Error("This backup version is not supported.");
+    }
+
+    const obj = candidate as Partial<Progress>;
     for (const k of SECTIONS) {
-      (P as unknown as Record<string, unknown>)[k] = obj[k] || P[k] || {};
+      const value = obj[k];
+      if (value !== undefined && !isRecord(value)) {
+        throw new Error(`Invalid backup section: ${k}`);
+      }
+    }
+    for (const k of SECTIONS) {
+      const value = obj[k];
+      (P as unknown as Record<string, unknown>)[k] = value || P[k] || {};
     }
     persist();
   },
