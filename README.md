@@ -18,13 +18,13 @@ Popular Architectures (65) · RNNs & Transformers (56) · Appendix: Matrix Calcu
 - **Review / Test modes**: read answers immediately or hide them for active recall.
 - **🃏 Anki-style flashcards (SM-2)**: study a deck (due / wrong-book / all), rate each card *Again / Hard / Good / Easy*, and let spaced repetition schedule it; MC, short-answer and calculation cards are interactive, and you can jot a **note without leaving the card** (shared with that question's own note).
 - **Study tracking**: mark **Reviewed**, keep a **wrong book**, write per-question **notes (Markdown + `$math$`, live preview)**, and work a **spaced-repetition** review page grouped by chapter with progress rings — optionally **synced** across devices via Google sign-in.
-- **Portable by design**: download a versioned JSON backup of all study data and import it later. Cloud progress is removed after **180 days without a successful sign-in or sync**; the login account remains available.
+- **Portable by design**: download a versioned JSON backup containing reviewed questions, the wrong book, notes, activity, and spaced-repetition schedules, then import it whenever you need. To keep the service completely free, cloud progress is automatically deleted after **180 days without a successful sign-in or sync**. The Google/Firebase login account is **not** deleted, and browser data or an exported backup can be synced again.
 - Selected questions carry the original **exam figures**.
 - **Frequency-first** ordering (🔥 badges); every question **source-tagged** like `SS22 3.1`.
 - KaTeX formulas, collapsible answers, mobile-optimized.
 
 ## Recent updates
-- **2026-07-30** — 💾 Added complete progress/note backups and a transparent 180-day inactive-cloud-data policy, maintained by a free, dry-run-first GitHub cleanup job.
+- **2026-07-30** — 💾 Study data is now portable: download and later import a complete JSON backup of reviewed questions, the wrong book, notes, activity, and spaced-repetition schedules. To keep I2DL completely free, cloud progress is automatically deleted after **180 days without a successful sign-in or sync**; the Google/Firebase login account is not deleted, and browser data or a backup can be synced again.
 - **2026-07-02** — 🃏 Flashcard polish: **notes inside a card** (shared with that question's note), **quick-jump pills** (Flashcards / Due today / Wrong book) on the Review page, a clearer **"How review works"** explainer, and a **"Review due"** button that no longer creeps the schedule forward on repeat taps.
 - **2026-06-30** — 🃏 **Anki-style flashcards** on the Review page: rate each card *Again / Hard / Good / Easy* and let **SM-2** spaced repetition schedule it.
 - **2026-06-30** — 🖼️ Questions can show **exam figures**; reviewed/due questions are **colour-coded** green/red; and there's a guarded **Reset progress** button.
