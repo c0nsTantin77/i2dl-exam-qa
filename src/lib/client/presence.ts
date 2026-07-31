@@ -1,13 +1,28 @@
 // Live "people online now" banner via Firebase Realtime Database. Each open tab
-// pushes a child under /presence and removes it on disconnect (server-side
-// onDisconnect), so the count tracks real concurrent visitors with no backend.
+// pushes a child under /presence and removes it on disconnect. A heartbeat and
+// rolling freshness window keep abandoned records from inflating the count.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const firebase: any;
 
-function render(n: number): void {
+const HEARTBEAT_MS = 60_000;
+const ACTIVE_WINDOW_MS = 5 * 60_000;
+
+let started = false;
+
+function hide(): void {
   const el = document.getElementById("presence-bar");
   if (!el) return;
+  el.textContent = "";
+  el.classList.remove("show");
+}
+
+function render(n: number): void {
+  const el = document.getElementById("presence-bar");
+  if (!el || n < 1) {
+    hide();
+    return;
+  }
   const others = Math.max(0, n - 1);
   el.textContent =
     others > 0
@@ -20,18 +35,115 @@ function render(n: number): void {
 }
 
 export function startPresence(): void {
+  if (started) return;
+  started = true;
+
   try {
     const dbRT = firebase.database();
     const listRef = dbRT.ref("presence");
     const connRef = dbRT.ref(".info/connected");
+    // Avoid downloading old abandoned entries on page load. The timestamp is
+    // also checked against Date.now() below so records age out while a page is
+    // kept open.
+    const recentRef = listRef
+      .orderByChild("t")
+      .startAt(Date.now() - ACTIVE_WINDOW_MS);
+
+    let joined = false;
+    let myRef: any = null;
+    let heartbeatId: number | undefined;
+    let latestSnapshot: any = null;
+
+    const stopHeartbeat = (): void => {
+      if (heartbeatId !== undefined) window.clearInterval(heartbeatId);
+      heartbeatId = undefined;
+    };
+
+    const renderSnapshot = (snap: any): void => {
+      if (!joined) {
+        hide();
+        return;
+      }
+
+      const cutoff = Date.now() - ACTIVE_WINDOW_MS;
+      let active = 0;
+      snap.forEach((child: any) => {
+        const timestamp = child.child("t").val();
+        if (typeof timestamp === "number" && timestamp >= cutoff) active += 1;
+      });
+      render(active);
+    };
+
+    recentRef.on(
+      "value",
+      (snap: any) => {
+        latestSnapshot = snap;
+        renderSnapshot(snap);
+      },
+      (error: unknown) => {
+        hide();
+        console.warn("Presence read failed", error);
+      },
+    );
+
+    const freshnessId = window.setInterval(() => {
+      if (latestSnapshot) renderSnapshot(latestSnapshot);
+    }, HEARTBEAT_MS);
+
     connRef.on("value", (snap: any) => {
-      if (snap.val() !== true) return;
-      const myRef = listRef.push();
-      myRef.onDisconnect().remove();
-      myRef.set({ t: firebase.database.ServerValue.TIMESTAMP });
+      if (snap.val() !== true) {
+        joined = false;
+        myRef = null;
+        stopHeartbeat();
+        hide();
+        return;
+      }
+      if (myRef) return;
+
+      const connectionRef = listRef.push();
+      myRef = connectionRef;
+
+      // Firebase recommends registering onDisconnect before marking the client
+      // online, so a connection loss between the two operations cannot leave a
+      // permanent presence record.
+      connectionRef
+        .onDisconnect()
+        .remove()
+        .then(() => connectionRef.set({ t: firebase.database.ServerValue.TIMESTAMP }))
+        .then(() => {
+          if (myRef !== connectionRef) return;
+          joined = true;
+          if (latestSnapshot) renderSnapshot(latestSnapshot);
+          heartbeatId = window.setInterval(() => {
+            connectionRef
+              .update({ t: firebase.database.ServerValue.TIMESTAMP })
+              .catch((error: unknown) => console.warn("Presence heartbeat failed", error));
+          }, HEARTBEAT_MS);
+        })
+        .catch((error: unknown) => {
+          if (myRef === connectionRef) myRef = null;
+          joined = false;
+          hide();
+          console.warn("Presence write failed", error);
+        });
     });
-    listRef.on("value", (snap: any) => render(snap.numChildren()));
+
+    window.addEventListener(
+      "pagehide",
+      (event: PageTransitionEvent) => {
+        // A page kept in the back-forward cache will resume the same Firebase
+        // connection and timers when restored, so leave its state intact.
+        if (event.persisted) return;
+        window.clearInterval(freshnessId);
+        stopHeartbeat();
+        // onDisconnect is the reliable fallback; this eager removal makes a
+        // normal navigation disappear from the count a little faster.
+        if (myRef) myRef.remove().catch(() => undefined);
+      },
+    );
   } catch (e) {
+    started = false;
+    hide();
     console.warn("Presence init failed", e);
   }
 }
